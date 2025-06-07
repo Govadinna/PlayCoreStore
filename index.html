@@ -28,7 +28,7 @@
   </div>
 
   <script>
-    const supabase = supabase.createClient(
+    const supabaseClient = window.supabase.createClient(
       'https://memzuluprwrblybyafpz.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lbXp1bHVwcndyYmx5YnlhZnB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyOTg4NDUsImV4cCI6MjA2NDg3NDg0NX0.UtmkuWLM66upzbR1yJWL0FfulGydsTduYJ1mHcyrT8o'
     );
@@ -44,11 +44,11 @@
       if (!userData) return alert("Telegram авторизация не сработала");
 
       // Получить или создать пользователя
-      const { data: users, error } = await supabase.from('users')
+      const { data: users, error } = await supabaseClient.from('users')
         .select('*').eq('telegram_id', userData.id).single();
 
       if (!users) {
-        const { data: newUser } = await supabase.from('users').insert({
+        const { data: newUser } = await supabaseClient.from('users').insert({
           telegram_id: userData.id.toString(),
           username: userData.username,
           balance: 0
@@ -63,7 +63,7 @@
     }
 
     async function loadItems() {
-      const { data: items } = await supabase.from('items').select('*');
+      const { data: items } = await supabaseClient.from('items').select('*');
       currentItems = items;
       const container = document.getElementById('items');
       container.innerHTML = '';
@@ -93,13 +93,13 @@
         return;
       }
 
-      await supabase.from('purchases').insert({
+      await supabaseClient.from('purchases').insert({
         user_id: currentUser.id,
         item_id: item.id
       });
 
       const newBalance = currentUser.balance - item.price;
-      await supabase.from('users').update({ balance: newBalance })
+      await supabaseClient.from('users').update({ balance: newBalance })
         .eq('id', currentUser.id);
 
       currentUser.balance = newBalance;
