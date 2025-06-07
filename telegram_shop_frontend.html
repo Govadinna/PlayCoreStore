@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="max-w-xl mx-auto p-4">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-xl font-bold">🛒 Магазин</h1>
+      <div id="balance" class="bg-white rounded px-3 py-1 shadow">💰 ...</div>
+    </div>
+
+    <div id="items" class="grid grid-cols-2 gap-4"></div>
+  </div>
+
+  <!-- Модальное окно -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-end invisible">
+    <div class="bg-white w-full max-w-md rounded-t-2xl p-4">
+      <img id="modal-img" src="" class="w-full rounded mb-2" />
+      <h2 id="modal-name" class="text-xl font-bold mb-2"></h2>
+      <button id="buy-button" class="w-full bg-blue-500 text-white py-2 rounded">Купить</button>
+    </div>
+  </div>
+
+  <script>
+    const supabase = supabase.createClient(
+      'https://memzuluprwrblybyafpz.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lbXp1bHVwcndyYmx5YnlhZnB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyOTg4NDUsImV4cCI6MjA2NDg3NDg0NX0.UtmkuWLM66upzbR1yJWL0FfulGydsTduYJ1mHcyrT8o'
+    );
+
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let currentUser = null;
+    let currentItems = [];
+
+    async function init() {
+      const userData = tg.initDataUnsafe.user;
+      if (!userData) return alert("Telegram авторизация не сработала");
+
+      // Получить или создать пользователя
+      const { data: users, error } = await supabase.from('users')
+        .select('*').eq('telegram_id', userData.id).single();
+
+      if (!users) {
+        const { data: newUser } = await supabase.from('users').insert({
+          telegram_id: userData.id.toString(),
+          username: userData.username,
+          balance: 0
+        }).select().single();
+        currentUser = newUser;
+      } else {
+        currentUser = users;
+      }
+
+      document.getElementById('balance').innerText = `💰 ${currentUser.balance} поинтов`;
+      loadItems();
+    }
+
+    async function loadItems() {
+      const { data: items } = await supabase.from('items').select('*');
+      currentItems = items;
+      const container = document.getElementById('items');
+      container.innerHTML = '';
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'bg-white p-2 rounded shadow';
+        div.innerHTML = `
+          <img src="${item.image_url}" class="rounded mb-2 w-full" />
+          <div class="font-semibold">${item.name}</div>
+          <div class="text-sm text-gray-500">${item.price} поинтов</div>
+        `;
+        div.onclick = () => openModal(item);
+        container.appendChild(div);
+      });
+    }
+
+    function openModal(item) {
+      document.getElementById('modal-img').src = item.image_url;
+      document.getElementById('modal-name').innerText = `${item.name} — ${item.price} поинтов`;
+      document.getElementById('modal').classList.remove('invisible');
+      document.getElementById('buy-button').onclick = () => buyItem(item);
+    }
+
+    async function buyItem(item) {
+      if (currentUser.balance < item.price) {
+        alert('Недостаточно поинтов!');
+        return;
+      }
+
+      await supabase.from('purchases').insert({
+        user_id: currentUser.id,
+        item_id: item.id
+      });
+
+      const newBalance = currentUser.balance - item.price;
+      await supabase.from('users').update({ balance: newBalance })
+        .eq('id', currentUser.id);
+
+      currentUser.balance = newBalance;
+      document.getElementById('balance').innerText = `💰 ${newBalance} поинтов`;
+      alert('Покупка успешна!');
+      document.getElementById('modal').classList.add('invisible');
+    }
+
+    window.onclick = (e) => {
+      if (e.target.id === 'modal') {
+        document.getElementById('modal').classList.add('invisible');
+      }
+    };
+
+    init();
+  </script>
+</body>
+</html>
