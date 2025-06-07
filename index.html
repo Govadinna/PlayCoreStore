@@ -23,6 +23,7 @@
     <div class="bg-white w-full max-w-md rounded-t-2xl p-4">
       <img id="modal-img" src="" class="w-full rounded mb-2" />
       <h2 id="modal-name" class="text-xl font-bold mb-2"></h2>
+      <h3 id="modal-desc" class="text-sm text-gray-600 mb-4"></h3>
       <button id="buy-button" class="w-full bg-blue-500 text-white py-2 rounded">Купить</button>
     </div>
   </div>
@@ -152,6 +153,7 @@
     function openModal(item) {
       document.getElementById('modal-img').src = item.image_url;
       document.getElementById('modal-name').innerText = `${item.name} — ${item.price} поинтов`;
+      document.getElementById('modal-desc').innerText = item.desc || 'Нет описания';
       document.getElementById('modal').classList.remove('invisible');
       document.getElementById('buy-button').onclick = () => buyItem(item);
     }
