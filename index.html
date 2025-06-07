@@ -40,44 +40,96 @@
     let currentItems = [];
 
     async function init() {
-      const userData = tg.initDataUnsafe.user;
-      if (!userData) return alert("Telegram авторизация не сработала");
-
-      // Получить или создать пользователя
-      const { data: users, error } = await supabaseClient.from('users')
-        .select('*').eq('telegram_id', userData.id).single();
-
-      if (!users) {
-        const { data: newUser } = await supabaseClient.from('users').insert({
-          telegram_id: userData.id.toString(),
-          username: userData.username,
-          balance: 0
-        }).select().single();
-        currentUser = newUser;
-      } else {
-        currentUser = users;
+      console.log('Telegram WebApp data:', tg.initDataUnsafe);
+      
+      let userData = tg.initDataUnsafe.user;
+      
+      // Если нет данных пользователя (тестовый режим), создаем тестового пользователя
+      if (!userData) {
+        console.log('Нет данных пользователя, используем тестовые данные');
+        userData = {
+          id: 123456789, // тестовый ID
+          username: 'testuser',
+          first_name: 'Test'
+        };
       }
 
-      document.getElementById('balance').innerText = `💰 ${currentUser.balance} поинтов`;
-      loadItems();
+      console.log('User data:', userData);
+
+      try {
+        // Получить или создать пользователя
+        const { data: users, error: selectError } = await supabaseClient.from('users')
+          .select('*').eq('telegram_id', userData.id.toString()).single();
+
+        console.log('Найденный пользователь:', users);
+        console.log('Ошибка поиска:', selectError);
+
+        if (!users || selectError) {
+          console.log('Создаем нового пользователя...');
+          const { data: newUser, error: insertError } = await supabaseClient.from('users').insert({
+            telegram_id: userData.id.toString(),
+            username: userData.username || 'anonymous',
+            balance: 1000 // даем стартовый баланс для тестирования
+          }).select().single();
+          
+          console.log('Новый пользователь:', newUser);
+          console.log('Ошибка создания:', insertError);
+          
+          if (insertError) {
+            alert('Ошибка создания пользователя: ' + insertError.message);
+            return;
+          }
+          
+          currentUser = newUser;
+        } else {
+          currentUser = users;
+        }
+
+        document.getElementById('balance').innerText = `💰 ${currentUser.balance} поинтов`;
+        loadItems();
+        
+      } catch (error) {
+        console.error('Ошибка инициализации:', error);
+        alert('Ошибка подключения к базе данных: ' + error.message);
+      }
     }
 
     async function loadItems() {
-      const { data: items } = await supabaseClient.from('items').select('*');
-      currentItems = items;
-      const container = document.getElementById('items');
-      container.innerHTML = '';
-      items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'bg-white p-2 rounded shadow';
-        div.innerHTML = `
-          <img src="${item.image_url}" class="rounded mb-2 w-full" />
-          <div class="font-semibold">${item.name}</div>
-          <div class="text-sm text-gray-500">${item.price} поинтов</div>
-        `;
-        div.onclick = () => openModal(item);
-        container.appendChild(div);
-      });
+      try {
+        const { data: items, error } = await supabaseClient.from('items').select('*');
+        
+        if (error) {
+          console.error('Ошибка загрузки товаров:', error);
+          alert('Ошибка загрузки товаров: ' + error.message);
+          return;
+        }
+        
+        console.log('Загруженные товары:', items);
+        currentItems = items || [];
+        
+        const container = document.getElementById('items');
+        container.innerHTML = '';
+        
+        if (currentItems.length === 0) {
+          container.innerHTML = '<div class="col-span-2 text-center text-gray-500">Товары не найдены</div>';
+          return;
+        }
+        
+        currentItems.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'bg-white p-2 rounded shadow cursor-pointer hover:shadow-lg transition-shadow';
+          div.innerHTML = `
+            <img src="${item.image_url}" class="rounded mb-2 w-full h-24 object-cover" />
+            <div class="font-semibold">${item.name}</div>
+            <div class="text-sm text-gray-500">${item.price} поинтов</div>
+          `;
+          div.onclick = () => openModal(item);
+          container.appendChild(div);
+        });
+      } catch (error) {
+        console.error('Ошибка загрузки товаров:', error);
+        alert('Ошибка загрузки товаров: ' + error.message);
+      }
     }
 
     function openModal(item) {
@@ -88,24 +140,41 @@
     }
 
     async function buyItem(item) {
-      if (currentUser.balance < item.price) {
-        alert('Недостаточно поинтов!');
-        return;
+      try {
+        if (currentUser.balance < item.price) {
+          alert('Недостаточно поинтов!');
+          return;
+        }
+
+        const { error: purchaseError } = await supabaseClient.from('purchases').insert({
+          user_id: currentUser.id,
+          item_id: item.id
+        });
+
+        if (purchaseError) {
+          console.error('Ошибка покупки:', purchaseError);
+          alert('Ошибка покупки: ' + purchaseError.message);
+          return;
+        }
+
+        const newBalance = currentUser.balance - item.price;
+        const { error: updateError } = await supabaseClient.from('users').update({ balance: newBalance })
+          .eq('id', currentUser.id);
+
+        if (updateError) {
+          console.error('Ошибка обновления баланса:', updateError);
+          alert('Ошибка обновления баланса: ' + updateError.message);
+          return;
+        }
+
+        currentUser.balance = newBalance;
+        document.getElementById('balance').innerText = `💰 ${newBalance} поинтов`;
+        alert('Покупка успешна!');
+        document.getElementById('modal').classList.add('invisible');
+      } catch (error) {
+        console.error('Ошибка покупки:', error);
+        alert('Ошибка покупки: ' + error.message);
       }
-
-      await supabaseClient.from('purchases').insert({
-        user_id: currentUser.id,
-        item_id: item.id
-      });
-
-      const newBalance = currentUser.balance - item.price;
-      await supabaseClient.from('users').update({ balance: newBalance })
-        .eq('id', currentUser.id);
-
-      currentUser.balance = newBalance;
-      document.getElementById('balance').innerText = `💰 ${newBalance} поинтов`;
-      alert('Покупка успешна!');
-      document.getElementById('modal').classList.add('invisible');
     }
 
     window.onclick = (e) => {
