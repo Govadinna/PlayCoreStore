@@ -76,7 +76,11 @@
           console.log('Ошибка создания:', insertError);
           
           if (insertError) {
-            alert('Ошибка создания пользователя: ' + insertError.message);
+            tg.showPopup({
+            title: 'Ошибка',
+            message: 'Ошибка создания пользователя:' + insertError.message,
+            buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+            });
             return;
           }
           
@@ -90,7 +94,11 @@
         
       } catch (error) {
         console.error('Ошибка инициализации:', error);
-        alert('Ошибка подключения к базе данных: ' + error.message);
+        tg.showPopup({
+          title: 'Ошибка',
+          message: 'Ошибка подключения к базе данных:' + error.message,
+          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+        });
       }
     }
 
@@ -100,7 +108,11 @@
         
         if (error) {
           console.error('Ошибка загрузки товаров:', error);
-          alert('Ошибка загрузки товаров: ' + error.message);
+          tg.showPopup({
+          title: 'Ошибка',
+          message: 'Ошибка загрузки товаров:' + error.message,
+          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+        });
           return;
         }
         
@@ -128,7 +140,11 @@
         });
       } catch (error) {
         console.error('Ошибка загрузки товаров:', error);
-        alert('Ошибка загрузки товаров: ' + error.message);
+        tg.showPopup({
+          title: 'Ошибка',
+          message: 'Ошибка загрузки товаров:' + error.message,
+          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+        });
       }
     }
 
@@ -142,7 +158,12 @@
     async function buyItem(item) {
       try {
         if (currentUser.balance < item.price) {
-          alert('Недостаточно поинтов!');
+          tg.showPopup({
+          title: 'Ошибка',
+          message: 'Недостаточно поинтов!',
+          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+        });
+
           return;
         }
 
@@ -153,7 +174,11 @@
 
         if (purchaseError) {
           console.error('Ошибка покупки:', purchaseError);
-          alert('Ошибка покупки: ' + purchaseError.message);
+          tg.showPopup({
+          title: 'Ошибка',
+          message: 'Ошибка покупки!' + purchaseError.message,
+          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+        });
           return;
         }
 
@@ -163,17 +188,29 @@
 
         if (updateError) {
           console.error('Ошибка обновления баланса:', updateError);
-          alert('Ошибка обновления баланса: ' + updateError.message);
+          tg.showPopup({
+          title: 'Ошибка',
+          message: 'Ошибка обновления баланса!' + updateError.message,
+          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+        });
           return;
         }
 
         currentUser.balance = newBalance;
         document.getElementById('balance').innerText = `💰 ${newBalance} поинтов`;
-        alert('Ваша заявка оформлена. В скором времени с вами свяжутся PlayCore!⏳');
+        tg.showPopup({
+          title: 'Успешно',
+          message: 'Спасибо за покупку!',
+          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+        });
         document.getElementById('modal').classList.add('invisible');
       } catch (error) {
         console.error('Ошибка покупки:', error);
-        alert('Ошибка покупки: ' + error.message);
+        tg.showPopup({
+          title: 'Ошибка',
+          message: 'Ошибка покупки!' + error.message,
+          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+        });
       }
     }
 
