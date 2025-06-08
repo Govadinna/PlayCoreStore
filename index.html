@@ -139,21 +139,26 @@
         }
         
         currentItems.forEach(item => {
+          if (item.sold === true) return;  // Пропускаем проданные предметы
+
           const div = document.createElement('div');
           div.className = 'rounded-xl overflow-hidden bg-zinc-800 p-3 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform h-52 flex flex-col justify-between';
           div.innerHTML = `
-          <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden mb-2">
-            <img src="${item.image_url}" class="w-full h-full object-cover" />
-          </div>
+            <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden mb-2">
+              <img src="${item.image_url}" class="w-full h-full object-cover" />
+            </div>
             <div class="text-sm text-center text-white">${item.name}</div>
             <div class="mt-1 flex justify-center">
-              
               <div class="text-xs text-white bg-blue-600 rounded-full px-3 py-1 font-medium">
                 ${item.price}
               </div>
-            
             </div>
           `;
+
+          // Добавляй div куда нужно, например в container:
+          document.getElementById('items-container').appendChild(div);
+
+
 
 
           div.onclick = () => openModal(item);
