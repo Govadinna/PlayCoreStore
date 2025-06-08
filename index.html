@@ -233,12 +233,12 @@
       });
       return;
     }
-
+    if (item.id != '604e73a2-209c-44d0-bad0-205670fedfdd'){
     const { error: soldUpdateError } = await supabaseClient
   .from('items')
   .update({ sold: true })
   .eq('id', item.id);
-
+    }
 if (soldUpdateError) {
   tg.showPopup({
     title: 'Ошибка',
