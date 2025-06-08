@@ -100,7 +100,7 @@
           currentUser = users;
         }
 
-        document.getElementById('balance').innerText = `💰 ${currentUser.balance} поинтов`;
+        document.getElementById('balance').innerText = `💰 ${currentUser.balance} PCP`;
         loadItems();
         
       } catch (error) {
@@ -150,7 +150,7 @@
             <div class="text-sm text-center text-white">${item.name}</div>
             <div class="mt-1 flex justify-center">
               <div class="text-xs text-white bg-blue-600 rounded-full px-3 py-1 font-medium">
-                ${item.price}
+                ${item.price} PCP
               </div>
             </div>
           `;
