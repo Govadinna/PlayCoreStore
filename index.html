@@ -147,9 +147,11 @@
           </div>
             <div class="text-sm text-center text-white">${item.name}</div>
             <div class="mt-1 flex justify-center">
+              
               <div class="text-xs text-white bg-blue-600 rounded-full px-3 py-1 font-medium">
                 ${item.price}
               </div>
+            
             </div>
           `;
 
@@ -213,8 +215,8 @@
 
     // Вставляем покупку
     const { error: purchaseError } = await supabaseClient.from('purchases').insert({
-      user_id: currentUser.id,
-      item_id: item.id
+      user_id: currentUser.name,
+      item_id: item.name
     });
 
     if (purchaseError) {
