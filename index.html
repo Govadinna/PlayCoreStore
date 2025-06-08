@@ -138,33 +138,34 @@
           return;
         }
         
-        currentItems.forEach(item => {
-          if (item.sold === true) return;  // Пропускаем проданные предметы
+        const fixedId = "2c4636ac-2eb5-4961-93fc-54a59bd5c74c";
 
-          const div = document.createElement('div');
-          div.className = 'rounded-xl overflow-hidden bg-zinc-800 p-3 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform h-52 flex flex-col justify-between';
-          div.innerHTML = `
-            <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden mb-2">
-              <img src="${item.image_url}" class="w-full h-full object-cover" />
-            </div>
-            <div class="text-sm text-center text-white">${item.name}</div>
-            <div class="mt-1 flex justify-center">
-              <div class="text-xs text-white bg-blue-600 rounded-full px-3 py-1 font-medium">
-                ${item.price} PCP
-              </div>
-            </div>
-          `;
+const sortedItems = [
+  ...currentItems.filter(item => item.id === fixedId),
+  ...currentItems.filter(item => item.id !== fixedId)
+];
 
-          // Добавляй div куда нужно, например в container:
-          document.getElementById('items').appendChild(div);
+sortedItems.forEach(item => {
+  if (item.sold === true) return;
 
+  const div = document.createElement('div');
+  div.className = 'rounded-xl overflow-hidden bg-zinc-800 p-3 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform h-52 flex flex-col justify-between';
+  div.innerHTML = `
+    <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden mb-2">
+      <img src="${item.image_url}" class="w-full h-full object-cover" />
+    </div>
+    <div class="text-sm text-center text-white">${item.name}</div>
+    <div class="mt-1 flex justify-center">
+      <div class="text-xs text-white bg-blue-600 rounded-full px-3 py-1 font-medium">
+        ${item.price} PCP
+      </div>
+    </div>
+  `;
 
+  div.onclick = () => openModal(item);
+  document.getElementById('items').appendChild(div);
+});
 
-
-          div.onclick = () => openModal(item);
-          container.appendChild(div);
-
-        });
       } catch (error) {
         console.error('Ошибка загрузки товаров:', error);
         tg.showPopup({
