@@ -229,18 +229,20 @@
       return;
     }
 
-    // Обновляем sold у предмета
-    const { error: soldUpdateError } = await supabaseClient.from('items').update({ sold: true }).eq('id', item.id);
+    const { error: soldUpdateError } = await supabaseClient
+  .from('items')
+  .update({ sold: true })
+  .eq('id', item.id);
 
-    if (soldUpdateError) {
-      console.error('Ошибка обновления sold:', soldUpdateError);
-      tg.showPopup({
-        title: 'Ошибка',
-        message: 'Ошибка обновления статуса предмета! ' + soldUpdateError.message,
-        buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
-      });
-      return;
-    }
+if (soldUpdateError) {
+  tg.showPopup({
+    title: 'Ошибка',
+    message: 'Ошибка обновления статуса предмета! ' + soldUpdateError.message,
+    buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+  });
+  return;
+}
+
 
     // Обновляем баланс пользователя
     const newBalance = currentUser.balance - item.price;
