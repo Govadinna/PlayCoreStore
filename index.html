@@ -19,14 +19,19 @@
   </div>
 
   <!-- Модальное окно -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-end invisible">
-    <div class="bg-white w-full max-w-md rounded-t-2xl p-4">
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-end invisible transition-all duration-300">
+    <div id="modal-content" class="bg-white w-full max-w-md rounded-t-2xl p-4 translate-y-full transition-transform duration-300 relative">
+      
+      <!-- Кнопка закрытия -->
+      <button id="modal-close" class="absolute top-3 right-3 text-gray-500 hover:text-black text-xl font-bold">&times;</button>
+      
       <img id="modal-img" src="" class="w-full rounded mb-2" />
-      <h2 id="modal-name" class="text-xl font-bold mb-2"></h2>
+      <h2 id="modal-name" class="text-xl font-bold mb-2 text-zinc-900"></h2>
       <h3 id="modal-desc" class="text-sm text-gray-600 mb-4"></h3>
-      <button id="buy-button" class="w-full bg-blue-500 text-white py-2 rounded">Купить</button>
+      <button id="buy-button" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition">Купить</button>
     </div>
   </div>
+  
 
   <script>
     const supabaseClient = window.supabase.createClient(
@@ -130,11 +135,11 @@
         
         currentItems.forEach(item => {
           const div = document.createElement('div');
-          div.className = 'rounded-xl overflow-hidden bg-zinc-800 p-2 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform';
+          div.className = 'rounded-xl overflow-hidden bg-zinc-800 p-3 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform h-52 flex flex-col justify-between';
           div.innerHTML = `
             <img src="${item.image_url}" class="rounded-lg w-full h-24 object-cover mb-2 border border-white/10" />
             <div class="text-sm text-center text-white">Rusty Case</div>
-            <div class="text-xs text-center text-yellow-400 mt-1"><span class="inline-block align-middle">💎</span> 500</div>
+            <div class="text-xs text-center text-yellow-400 mt-1">500</div>
           `;
 
           div.onclick = () => openModal(item);
@@ -155,7 +160,13 @@
       document.getElementById('modal-img').src = item.image_url;
       document.getElementById('modal-name').innerText = `${item.name} — ${item.price} поинтов`;
       document.getElementById('modal-desc').innerText = item.desc || 'Нет описания';
-      document.getElementById('modal').classList.remove('invisible');
+      const modal = document.getElementById('modal');
+      const modalContent = document.getElementById('modal-content');
+      modal.classList.remove('invisible');
+      setTimeout(() => {
+        modalContent.classList.remove('translate-y-full');
+      }, 10);
+
       document.getElementById('buy-button').onclick = () => buyItem(item);
     }
 
@@ -220,9 +231,25 @@
 
     window.onclick = (e) => {
       if (e.target.id === 'modal') {
-        document.getElementById('modal').classList.add('invisible');
+        closeModal();
       }
     };
+
+
+    document.getElementById('modal-close').onclick = () => {
+      closeModal();
+    };
+
+    function closeModal() {
+      const modal = document.getElementById('modal');
+      const modalContent = document.getElementById('modal-content');
+      modalContent.classList.add('translate-y-full');
+      setTimeout(() => {
+        modal.classList.add('invisible');
+      }, 300);
+    }
+
+
 
     init();
   </script>
