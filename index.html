@@ -172,6 +172,23 @@
       document.getElementById('modal-img').src = item.image_url;
       document.getElementById('modal-name').innerText = `${item.name} — ${item.price} поинтов`;
       document.getElementById('modal-desc').innerText = item.desc || 'Нет описания';
+
+      // Показываем или скрываем immortal
+      const immortalElem = document.getElementById('modal-immortal');
+      if (item.immortal) {
+        immortalElem.style.display = 'inline-block';
+      } else {
+        immortalElem.style.display = 'none';
+      }
+
+      // Показываем или скрываем set
+      const setElem = document.getElementById('modal-set');
+      if (item.set) {
+        setElem.style.display = 'inline-block';
+      } else {
+        setElem.style.display = 'none';
+      }
+
       const modal = document.getElementById('modal');
       const modalContent = document.getElementById('modal-content');
       modal.classList.remove('invisible');
@@ -181,6 +198,7 @@
 
       document.getElementById('buy-button').onclick = () => buyItem(item);
     }
+
 
     async function buyItem(item) {
       try {
