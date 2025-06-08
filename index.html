@@ -231,7 +231,7 @@
 
     const { error: soldUpdateError } = await supabaseClient
   .from('items')
-  .update({ sold: true })
+  .update({ sold: TRUE })
   .eq('id', item.id);
 
 if (soldUpdateError) {
