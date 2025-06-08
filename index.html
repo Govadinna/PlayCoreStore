@@ -48,10 +48,7 @@
     tg.expand();
 
     let currentUser = null;
-    currentItems = (items || []).sort((a, b) => {
-      return a.id === '2c4636ac-2eb5-4961-93fc-54a59bd5c74c' ? -1 : b.id === '2c4636ac-2eb5-4961-93fc-54a59bd5c74c' ? 1 : 0;
-    });
-
+    let currentItems = [];
 
     async function init() {
       console.log('Telegram WebApp data:', tg.initDataUnsafe);
