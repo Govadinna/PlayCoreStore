@@ -80,7 +80,7 @@
           const { data: newUser, error: insertError } = await supabaseClient.from('users').insert({
             telegram_id: userData.id.toString(),
             username: userData.username || 'anonymous',
-            balance: 1000 // даем стартовый баланс для тестирования
+            balance: 0 // даем стартовый баланс для тестирования
           }).select().single();
           
           console.log('Новый пользователь:', newUser);
