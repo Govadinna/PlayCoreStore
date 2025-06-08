@@ -215,8 +215,8 @@
 
     // Вставляем покупку
     const { error: purchaseError } = await supabaseClient.from('purchases').insert({
-      user_id: currentUser.name,
-      item_id: item.name
+      user_id: currentUser.id,
+      item_id: item.id
     });
 
     if (purchaseError) {
