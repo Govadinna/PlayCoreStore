@@ -201,63 +201,77 @@
 
 
     async function buyItem(item) {
-      try {
-        if (currentUser.balance < item.price) {
-          tg.showPopup({
-          title: 'Ошибка',
-          message: 'Недостаточно поинтов!',
-          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
-        });
-
-          return;
-        }
-
-        const { error: purchaseError } = await supabaseClient.from('purchases').insert({
-          user_id: currentUser.id,
-          item_id: item.id
-        });
-
-        if (purchaseError) {
-          console.error('Ошибка покупки:', purchaseError);
-          tg.showPopup({
-          title: 'Ошибка',
-          message: 'Ошибка покупки!' + purchaseError.message,
-          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
-        });
-          return;
-        }
-
-        const newBalance = currentUser.balance - item.price;
-        const { error: updateError } = await supabaseClient.from('users').update({ balance: newBalance })
-          .eq('id', currentUser.id);
-
-        if (updateError) {
-          console.error('Ошибка обновления баланса:', updateError);
-          tg.showPopup({
-          title: 'Ошибка',
-          message: 'Ошибка обновления баланса!' + updateError.message,
-          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
-        });
-          return;
-        }
-
-        currentUser.balance = newBalance;
-        document.getElementById('balance').innerText = `💰 ${newBalance} поинтов`;
-        tg.showPopup({
-          title: 'Успешно',
-          message: 'Ваша заявка оформлена. В скором времени с вами свяжется PlayCore⏳',
-          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
-        });
-        document.getElementById('modal').classList.add('invisible');
-      } catch (error) {
-        console.error('Ошибка покупки:', error);
-        tg.showPopup({
-          title: 'Ошибка',
-          message: 'Ошибка покупки!' + error.message,
-          buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
-        });
-      }
+  try {
+    if (currentUser.balance < item.price) {
+      tg.showPopup({
+        title: 'Ошибка',
+        message: 'Недостаточно поинтов!',
+        buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+      });
+      return;
     }
+
+    // Вставляем покупку
+    const { error: purchaseError } = await supabaseClient.from('purchases').insert({
+      user_id: currentUser.id,
+      item_id: item.id
+    });
+
+    if (purchaseError) {
+      console.error('Ошибка покупки:', purchaseError);
+      tg.showPopup({
+        title: 'Ошибка',
+        message: 'Ошибка покупки! ' + purchaseError.message,
+        buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+      });
+      return;
+    }
+
+    // Обновляем sold у предмета
+    const { error: soldUpdateError } = await supabaseClient.from('items').update({ sold: true }).eq('id', item.id);
+
+    if (soldUpdateError) {
+      console.error('Ошибка обновления sold:', soldUpdateError);
+      tg.showPopup({
+        title: 'Ошибка',
+        message: 'Ошибка обновления статуса предмета! ' + soldUpdateError.message,
+        buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+      });
+      return;
+    }
+
+    // Обновляем баланс пользователя
+    const newBalance = currentUser.balance - item.price;
+    const { error: updateError } = await supabaseClient.from('users').update({ balance: newBalance }).eq('id', currentUser.id);
+
+    if (updateError) {
+      console.error('Ошибка обновления баланса:', updateError);
+      tg.showPopup({
+        title: 'Ошибка',
+        message: 'Ошибка обновления баланса! ' + updateError.message,
+        buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+      });
+      return;
+    }
+
+    currentUser.balance = newBalance;
+    document.getElementById('balance').innerText = `💰 ${newBalance} поинтов`;
+    tg.showPopup({
+      title: 'Успешно',
+      message: 'Ваша заявка оформлена. В скором времени с вами свяжется PlayCore⏳',
+      buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+    });
+    document.getElementById('modal').classList.add('invisible');
+  } catch (error) {
+    console.error('Ошибка покупки:', error);
+    tg.showPopup({
+      title: 'Ошибка',
+      message: 'Ошибка покупки! ' + error.message,
+      buttons: [{ id: 'ok', type: 'close', text: 'ОК' }]
+    });
+  }
+}
+
 
     window.onclick = (e) => {
       if (e.target.id === 'modal') {
